@@ -37,7 +37,7 @@ class TextRecognizer(object):
     def __init__(self, args, logger=None):
         if logger is None:
             logger = get_logger()
-        self.rec_image_shape = [int(v) for v in args.rec_image_shape.split(",")]
+        self.rec_image_shape = args.rec_image_shape
         self.rec_batch_num = args.rec_batch_num
         self.rec_algorithm = args.rec_algorithm
         postprocess_params = {
@@ -149,26 +149,7 @@ class TextRecognizer(object):
             self.output_tensors,
             self.config,
         ) = utility.create_predictor(args, "rec", logger)
-        self.benchmark = args.benchmark
-        if args.benchmark:
-            import auto_log
-
-            pid = os.getpid()
-            gpu_id = utility.get_infer_gpuid()
-            self.autolog = auto_log.AutoLogger(
-                model_name="rec",
-                model_precision=args.precision,
-                batch_size=args.rec_batch_num,
-                data_shape="dynamic",
-                save_path=None,  # not used if logger is not None
-                inference_config=self.config,
-                pids=pid,
-                process_name=None,
-                gpu_ids=gpu_id if args.use_gpu else None,
-                time_keys=["preprocess_time", "inference_time", "postprocess_time"],
-                warmup=0,
-                logger=logger,
-            )
+        
         self.return_word_box = args.return_word_box
 
     def resize_norm_img(self, img, max_wh_ratio):
@@ -545,8 +526,7 @@ class TextRecognizer(object):
         rec_res = [["", 0.0]] * img_num
         batch_num = self.rec_batch_num
         st = time.time()
-        if self.benchmark:
-            self.autolog.times.start()
+
         for beg_img_no in range(0, img_num, batch_num):
             end_img_no = min(img_num, beg_img_no + batch_num)
             norm_img_batch = []
@@ -648,8 +628,6 @@ class TextRecognizer(object):
                     norm_img_batch.append(norm_img)
             norm_img_batch = np.concatenate(norm_img_batch)
             norm_img_batch = norm_img_batch.copy()
-            if self.benchmark:
-                self.autolog.times.stamp()
 
             if self.rec_algorithm == "SRN":
                 encoder_word_pos_list = np.concatenate(encoder_word_pos_list)
@@ -730,6 +708,5 @@ class TextRecognizer(object):
                 rec_result = self.postprocess_op(preds)
             for rno in range(len(rec_result)):
                 rec_res[indices[beg_img_no + rno]] = rec_result[rno]
-            if self.benchmark:
-                self.autolog.times.end(stamp=True)
+
         return rec_res, time.time() - st

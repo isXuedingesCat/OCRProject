@@ -47,9 +47,6 @@ logger = get_logger()
 @Singleton
 class TextSystem(object):
     def __init__(self, args):
-        if not args.show_log:
-            logger.setLevel(logging.INFO)
-
         self.text_detector = predict_det.TextDetector(args)
         self.text_recognizer = predict_rec.TextRecognizer(args)
         self.use_angle_cls = args.use_angle_cls
@@ -144,8 +141,8 @@ class TextSystem(object):
         rec_res, elapse = self.text_recognizer(img_crop_list)
         time_dict["rec"] = elapse
         logger.debug("rec_res num  : {}, elapsed : {}".format(len(rec_res), elapse))
-        if self.args.save_crop_res:
-            self.draw_crop_rec_res(self.args.crop_res_save_dir, img_crop_list, rec_res)
+        # if self.args.save_crop_res:
+        #     self.draw_crop_rec_res(self.args.crop_res_save_dir, img_crop_list, rec_res)
         filter_boxes, filter_rec_res = [], []
         for box, rec_result in zip(dt_boxes, rec_res):
             text, score = rec_result[0], rec_result[1]

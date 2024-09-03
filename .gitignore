@@ -1,2 +1,4 @@
 paddle_weights/
 thridpart/
+__pycache__
+*.pyc

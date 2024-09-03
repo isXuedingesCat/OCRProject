@@ -1,4 +1,8 @@
 OCR_CONFIG = {
+    "use_gpu":True,
+    "gpu_id":0,
+    "save_crop_res":False,
+
     # text detector
     "det_algorithm": "DB",
     "det_model_dir": "/home/shijia/pycode/OCRProject/ocrcore/infer/ocr_det/inference.onnx",
@@ -42,7 +46,7 @@ OCR_CONFIG = {
     "rec_image_shape":[3,48,320],
     "rec_batch_num":6,
     "max_text_length":25,
-    "rec_char_dict_path":"/home/shijia/pycode/OCRProject/ocrcore/infer/ocr_rec/ppocr_keys_v1.txtt",
+    "rec_char_dict_path":"/home/shijia/pycode/OCRProject/ocrcore/infer/ocr_rec/ppocr_keys_v1.txt",
     "use_space_char":True,
     "vis_font_path":"/home/shijia/pycode/OCRProject/ocrcore/infer/ocr_rec/simfang.ttf",
     "drop_score":0.5,

@@ -146,24 +146,6 @@ class TextDetector(object):
             }
         self.preprocess_op = create_operators(pre_process_list)
 
-        if args.benchmark:
-            import auto_log
-            pid = os.getpid()
-            gpu_id = utility.get_infer_gpuid()
-            self.autolog = auto_log.AutoLogger(
-                model_name="det",
-                model_precision=args.precision,
-                batch_size=1,
-                data_shape="dynamic",
-                save_path=None,  # not used if logger is not None
-                inference_config=self.config,
-                pids=pid,
-                process_name=None,
-                gpu_ids=gpu_id if args.use_gpu else None,
-                time_keys=["preprocess_time", "inference_time", "postprocess_time"],
-                warmup=2,
-                logger=logger,
-            )
 
     def order_points_clockwise(self, pts):
         rect = np.zeros((4, 2), dtype="float32")
@@ -230,9 +212,6 @@ class TextDetector(object):
 
         st = time.time()
 
-        if self.args.benchmark:
-            self.autolog.times.start()
-
         data = transform(data, self.preprocess_op)
         img, shape_list = data
         if img is None:
@@ -241,8 +220,6 @@ class TextDetector(object):
         shape_list = np.expand_dims(shape_list, axis=0)
         img = img.copy()
 
-        if self.args.benchmark:
-            self.autolog.times.stamp()
         input_dict = {}
         input_dict[self.input_tensor.name] = img
         outputs = self.predictor.run(self.output_tensors, input_dict)
@@ -275,8 +252,6 @@ class TextDetector(object):
         else:
             dt_boxes = self.filter_tag_det_res(dt_boxes, ori_im.shape)
 
-        if self.args.benchmark:
-            self.autolog.times.end(stamp=True)
         et = time.time()
         return dt_boxes, et - st
 
